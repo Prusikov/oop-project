@@ -13,7 +13,7 @@ const sounds = {
   levelup: new Audio('sounds/levelup.wav'),
   death: new Audio('sounds/death.wav'),
   battle: new Audio('sounds/battle.mp3'),
-  win: new Audio('sounds/win.mp3'),
+  win: new Audio('sounds/win.mp3')
 };
 
 // game state. Is used in the keyboard event listener to prevent user action if game is over
@@ -21,53 +21,156 @@ let GAME_STATE = 'PLAY';
 
 // init board
 // Create a board with 20 rows and 25 columns (can play around to test different sizes) and render it
+const board = new Board(20, 25);
 
 // init player
 // create player at the center of the board with 2 items and render it
-
+const player = new Player('Van', new Position(10, 12), board, 1, [], 90);
+player.setImg('player/front.png');
 // Keep this, used to display the information on the box on the right of the board
 updateActionCam();
 
-// board entities
+const monster = createMonsters()
 
-// monsters
-
+function createMonsters() {
+   for (i = 0; i < 3;i++)
+     board.setEntity(new Monster(), new Position(getRandom(3, 15), getRandom(3, 20)));
 // Create all the monsters entities and set them on the board at a random position
 // Give each monster a random name, random level (1-3), a potion (random rarity 0-3), random gold (0-50)
 // Give one monster the key
-for (let i = 0; i < MAX_MONSTERS; i++) {}
-
+  
+}
 // items
 // Add code to create a potion and a bomb entity and set them at a random board position
+const keyItem = new Key();
+let pos = getRandomPosition(board);
+board.setEntity(keyItem, pos);
 
+const potion = new Potion(2);
+pos = getRandomPosition(board);
+board.setEntity(potion, pos);
 // gold
 // Add code to create a gold entity and place it at a random position on the board
+const gold = new Gold(100);
+pos = getRandomPosition(board);
+board.setEntity(gold, pos);
 
 // dungeons
 // Add code for an opened dungeon and a closed dungeon you can loot (random position)
 // Add code for a dungeon that is closed and has the princess (random position)
+const dungeonO = new Dungeon(true, false, 30, [new Potion(2), new Bomb(2)]);
+pos = getRandomPosition(board);
+board.setEntity(dungeonO, pos);
+
+ const dungeon1 = new Dungeon(true, true, 30, [new Potion(0)]);
+ pos = getRandomPosition(board);
+ board.setEntity(dungeon1, pos);
+
+ const dungeon2 = new Dungeon(false, false, 30, [new Bomb(2)]);
+ pos = getRandomPosition(board);
+ board.setEntity(dungeon2, pos);
+
+const dungeon3 = new Dungeon(true, true, 30, [new Potion(3), new Bomb(1)]);
+pos = getRandomPosition(board);
+board.setEntity(dungeon3, pos);
 
 // tradesman
 // Add code for a tradesman with a potion of each rarity (0 to 3), bomb of each rarity and a key at a random position
+const tradesman = new Tradesman([new Potion(getRandom(0, 3)), new Bomb(getRandom(0, 3)), new Key()]);
+pos = getRandomPosition(board);
+board.setEntity(tradesman, pos);
+
 
 // event handlers
-
+board.render(boardElement);
 let monsterAttack;
 // UPDATE this event listener to move the player
 // Add code to check if the entity at the new player position (after move) is a monster. If so, call the encounterMonster function
-document.addEventListener('keydown', (ev) => {
+document.addEventListener('keydown', ev => {
+  if (ev.code === "ArrowLeft") { 
+    if (board.rows[player.position.row][player.position.column - 1].constructor.name == 'Monster')
+    {
+      encounterMonster(board.rows[player.position.row - 1][player.position.column]);  
+    }
+
+    let ent = board.rows[player.position.row][player.position.column - 1];
+    ent.position = new Position(player.position.row, player.position.column - 1);
+    updateActionCam(ent);
+
+    if (board.rows[player.position.row][player.position.column - 1].constructor.name == 'Grass') {
+      // clearEntity(player.position) 
+      player.moveLeft()
+      player.setImg('player/left.png');
+    }
+  }
+
+ else if (ev.code === "ArrowRight") { 
+    if (board.rows[player.position.row][player.position.column + 1].constructor.name == 'Monster') {
+       encounterMonster(board.rows[player.position.row][player.position.column + 1]); 
+    }
+    
+     
+    //updateActionCam(board.rows[player.position.row][player.position.column + 1]);
+    let ent = board.rows[player.position.row][player.position.column + 1];
+    ent.position = new Position(player.position.row, player.position.column + 1);
+    updateActionCam(ent);
+
+    if (board.rows[player.position.row][player.position.column + 1].constructor.name == 'Grass') {
+      player.moveRight();
+      player.setImg('player/right.png');
+    }
+  } 
+  else if (ev.code === "ArrowDown") {
+    if (board.rows[player.position.row + 1][player.position.column].constructor.name == 'Monster')
+      encounterMonster(board.rows[player.position.row +1][player.position.column]);
+   // updateActionCam(board.rows[player.position.row + 1][player.position.column]);
+    let ent = board.rows[player.position.row + 1][player.position.column ];
+    ent.position = new Position(player.position.row + 1, player.position.column );
+    updateActionCam(ent);
+    if (board.rows[player.position.row + 1][player.position.column].constructor.name == 'Grass') {
+
+      player.moveDown()
+      player.setImg('player/front.png');
+    }
+  } 
+ else if (ev.code === "ArrowUp") {
+    if (board.rows[player.position.row - 1][player.position.column].constructor.name == 'Monster')
+      encounterMonster(board.rows[player.position.row - 1][player.position.column]);
+   // updateActionCam(board.rows[player.position.row - 1][player.position.column]);
+    let ent = board.rows[player.position.row - 1][player.position.column];
+    ent.position = new Position(player.position.row - 1, player.position.column);
+    updateActionCam(ent);
+    if (board.rows[player.position.row - 1][player.position.column].constructor.name == 'Grass') {
+
+      player.moveUp()
+      player.setImg('player/back.png');
+    }
+  } 
   if (!ev.key.includes('Arrow') || GAME_STATE === 'GAME_OVER') return;
   if (sounds.bg.paused) playMusic('bg');
   clearInterval(monsterAttack); // stop monster attack when player moves
 
-  updateActionCam();
+
 });
 
 // helper functions
 
 // UPDATE the function to return a random position on the board that is not occupied by an entity (Grass is fine) or the player's initial position (center)
 // The parameter is a Board object
-function getRandomPosition(board) {}
+function getRandomPosition(board) {
+ 
+  let x = getRandom(1, 19);
+  let y = getRandom(1, 24);
+ 
+  if (board.rows[x][y].constructor.name == 'Grass') {
+      return new Position(x, y);
+    } 
+    else {
+      return getRandomPosition(board);
+    }
+
+ 
+}
 
 // UPDATE the function passed to setInterval to attack the player and trigger player death if hp is 0 or lower
 // The parameter is a Monster object
@@ -76,8 +179,10 @@ function getRandomPosition(board) {}
 function encounterMonster(monster) {
   playMusic('battle');
   monsterAttack = setInterval(() => {
-    document.getElementById('Player-hp').textContent = `HP: ${100}`;
-  }, 1000);
+    document.getElementById('Player-hp').textContent = `HP: ${player.hp}`;
+    if (player.hp == 0)
+      playerDeath();
+  }, monster.attackSpeed);
 }
 
 // Use when the player is dead, no need to change anything
@@ -92,24 +197,39 @@ function playerDeath() {
 
 // UPDATE this function to getExp from monster, loot the monster, and clear the entity (monster) at the player position
 function defeatMonster(monster) {
+  player.exp += monster.hp;
+  player.gold += monster.gold;
+  player.levelUp(monster);
+  clearEntity(monster);
   clearInterval(monsterAttack);
   playMusic('bg');
 }
 
 // UPDATE this function to set the board entity at position to a grass entity
-function clearEntity(position) {}
+// function clearEntity(position) {
+//   board.rows[position.row][position.column] = new Grass();
+// }
+function clearEntity(entity) {
+  entity.element.src = `imgs/environment/grass${getRandom(1, 3)}.png`;
+  var pos = entity.position;
+  entity = new Grass();
+  board.rows[pos.row][pos.column] = entity;
+  //board.render(boardElement);
+}
 
 // DOM manipulation functions
 
 // This function updates the 'action cam' - the box showing the enemy and player info as well as the actions
 // It is called after an event happened (e.g. used item) to update the information shown in the action box
 // UPDATE the entity variable to be the entity at the player position
-function updateActionCam() {
+function updateActionCam(ent) {
+  console.log('in update action cam');
   const entity = null;
   actioncam.innerHTML = '';
-  actioncam.appendChild(createActionView(entity));
-  actioncam.appendChild(createActionView(player));
-  actioncam.appendChild(createActionMenu(entity));
+  actioncam.appendChild(createActionView(ent));
+   actioncam.appendChild(createActionView(player));
+  // actioncam.appendChild(createActionMenu(entity));
+  
 }
 
 // UPDATE this function based on the comments
@@ -118,41 +238,81 @@ function updateActionCam() {
 // Replace the ternary condition setting the img.id to be 'player-cam' if the entity is a Player, 'entity-cam' otherwise
 // Replace the ternary condition setting the img.src to be 'imgs/player/attack.png' if the entity is a Player, else use the entity's image src
 function createActionView(entity) {
+  
   const actionView = document.createElement('div');
   actionView.className = 'action-view';
   const infoWrapper = document.createElement('div');
 
   const name = document.createElement('h3');
+  if (entity)
+    name.innerHTML = entity.constructor.name == 'Player' ? 'Alex' : entity.constructor.name;
+  else
+    name.innerHTML = "Grass";
+    
   // Add code here to set the name text to be the entity name or use the constructor name as fallback
   infoWrapper.appendChild(name);
+  //(typeof entity === Creature)
+  
+  if (entity) {
+    if (entity.constructor.name == 'Monster') {
+      createCreatureView(infoWrapper, entity);
+      createMonsterMenu(infoWrapper, entity);
+    } 
+    else if (entity.constructor.name == 'Gold' || entity.constructor.name == 'Potion' || entity.constructor.name == 'Key')
+      createPickupMenu(infoWrapper, entity);
+    else if (entity.constructor.name == 'Dungeon')
+      createDungeonMenu(infoWrapper, entity);
+    else if (entity.constructor.name == 'Tradesman')
+      createTradeMenu(infoWrapper, entity);
+    else
+      createActionMenu(entity);
+    
+    if (entity.constructor.name == 'Player') {
+      const value = document.createElement('h4');
+      value.id = 'Player-hp';
+      value.innerHTML = '</br>Hp: ' + player.hp ;
+      // Add code here to set the value text to the entity's value e.g. "Value: 20"
+      const level = document.createElement('h4');
+      level.innerHTML = '</br>Level: ' + player.level ;
+      const gold = document.createElement('h4');
+      gold.innerHTML = '</br>Gold: ' + player.gold;
 
-  if (true) createCreatureView(infoWrapper, entity);
+      infoWrapper.appendChild(value);      
+      infoWrapper.appendChild(level);
+      infoWrapper.appendChild(gold);
+    }
 
-  if (true) {
-    const value = document.createElement('h4');
-    // Add code here to set the value text to the entity's value e.g. "Value: 20"
-    infoWrapper.appendChild(value);
   }
 
   // Add the entity image
   const img = document.createElement('img');
-  img.id = true ? 'player-cam' : 'entity-cam';
-  img.src = true ? 'imgs/player/attack.png' : 'entity image src';
+  img.id = entity && entity.constructor.name == 'Player' ? 'player-cam' : 'entity-cam';
+  if (entity && entity.constructor.name == 'Player')
+    img.src = 'imgs/player/attack.png';
+  else
+    img.src = entity && entity.element ? entity.element.src : `imgs/environment/grass${getRandom(1, 3)}.png` ;
   actionView.appendChild(infoWrapper);
   actionView.appendChild(img);
 
+  
   return actionView;
 }
 
 // UPDATE this function based on the comments
 function createCreatureView(root, creature) {
   const level = document.createElement('h4');
+  level.innerHTML = "Level: "+creature.level;
   // Add code here to set the level text to the creature's level e.g. "Level 1"
   const hp = document.createElement('h4');
-  hp.id = creature.constructor.name + '-hp';
+  hp.id = 'Monster-hp';
+  hp.innerHTML = "Hp: " + creature.hp;
+  //hp.id = creature.constructor.name + '-hp';
+
   // Add code here to set the hp text to the creature's hp e.g. "HP: 100"
   const gold = document.createElement('h4');
+  gold.innerHTML = "Gold: " + creature.gold;
   // Add code here to set the gold text to the creature's gold e.g. "Gold: 10"
+  console.log('hp, level, gold');
   root.appendChild(hp);
   root.appendChild(level);
   root.appendChild(gold);
@@ -171,11 +331,20 @@ function createActionMenu(entity) {
 function createPickupMenu(root, entity) {
   const actions = document.createElement('div');
   actions.textContent = 'Actions';
+  actions.style.color = 'blue';
+  actions.style.textAlign = 'center';
+  actions.style.fontFamily = 'Arial, Helvetica, sans-serif';
+  actions.style.margin = '5px';
+  const div = document.createElement('div');
   const pickupBtn = document.createElement('button');
   pickupBtn.textContent = 'Pickup';
   pickupBtn.addEventListener('click', () => {
-    updateActionCam();
+    player.pickup(entity);
+    
+      clearEntity(entity);
+      updateActionCam();
   });
+  actions.appendChild(div);
   actions.appendChild(pickupBtn);
   root.appendChild(actions);
 }
@@ -187,17 +356,35 @@ function createPickupMenu(root, entity) {
 function createMonsterMenu(root, monster) {
   const actions = document.createElement('div');
   actions.textContent = 'Actions';
+  actions.style.color = 'red';
+  actions.style.textAlign = 'center';
+  actions.style.fontFamily = 'Arial, Helvetica, sans-serif';
+  actions.style.margin = '5px';
+
   let attackBtn = document.createElement('button');
   attackBtn.textContent = 'Attack';
+  attackBtn.style.display = 'block';
+  attackBtn.style.padding = '5px';
+  attackBtn.style.margin = '5px';
   // Add code here to reset the player attack timeout to allow the player to attack a monster as soon as one is encountered
   attackBtn.addEventListener('click', () => {
-    if (true) {
+    if (monster.hp <= 0) {
+      defeatMonster(monster);
       updateActionCam();
     } else {
       attackBtn.disabled = true;
-      setTimeout(() => (attackBtn.disabled = false), 1000);
+      monsterAttack = setTimeout(() => (
+        attackBtn.disabled = false        
+      ), player.attackSpeed);
+      player.attack(monster);   
+      monster.attack(player);
+      
+      playSound("mattack");
       // Replace the hp printed to be the monster's hp
-      document.getElementById('Monster-hp').textContent = `HP: ${100}`;
+      document.getElementById('Monster-hp').textContent = `HP: ${monster.hp}`;
+      document.getElementById('Player-hp').textContent = `HP: ${player.hp}`;
+      if (player.hp == 0)
+        playerDeath();
     }
   });
   actions.appendChild(attackBtn);
@@ -212,7 +399,7 @@ function createMonsterMenu(root, monster) {
 function createItemActions(root, monster) {
   const items = document.createElement('div');
   items.textContent = 'Items';
-  [].forEach((item) => {
+  [].forEach(item => {
     const itemBtn = document.createElement('button');
     // Add code here to set the itemBtn text to the item name
     itemBtn.addEventListener('click', () => {
@@ -231,21 +418,42 @@ function createItemActions(root, monster) {
 function createTradeMenu(root, tradesman) {
   const buyAction = document.createElement('div');
   buyAction.textContent = 'Buy';
-  [].forEach((item) => {
+  buyAction.style.margin = '10px';
+  tradesman.items.forEach(item => {
     const itemBtn = document.createElement('button');
+    itemBtn.textContent = item.type + ' - ' + item.value;
+    itemBtn.style.display = 'block';
+    itemBtn.style.padding = '5px';
+    itemBtn.style.margin = '5px';
+    itemBtn.id = item.type;
     // Add code here to set the item text to the item's name and value e.g. "Common potion - 10G"
     // Add code here to set itemBtn to disabled if the player does not have enough gold for the item
-    itemBtn.addEventListener('click', () => {
+    if (player.gold < item.value)
+      itemBtn.disabled = true;
+    
+    itemBtn.addEventListener('click', (event) => {
+      var itemName = event.currentTarget.id;
+      player.buy(itemName, tradesman);
       updateActionCam();
     });
     buyAction.appendChild(itemBtn);
   });
   const sellAction = document.createElement('div');
   sellAction.textContent = 'Sell';
-  [].forEach((item) => {
+  sellAction.style.margin = '10px';
+  player.items.forEach(item => {
     const itemBtn = document.createElement('button');
+    itemBtn.textContent = item.type + ' - ' + item.value;
+    itemBtn.style.display = 'block';
+    itemBtn.style.padding = '5px';
+    itemBtn.style.margin = '5px';
+    itemBtn.id = item.type;
     // Add code here to set the item text to the item's name and value e.g. "Common potion - 10G"
-    itemBtn.addEventListener('click', () => {
+    itemBtn.addEventListener('click', (event) => {
+      if (player.sell(event.currentTarget.id, tradesman)) {
+        sounds.bg.pause();
+        playSound("trade");
+      }
       updateActionCam();
     });
     sellAction.appendChild(itemBtn);
@@ -262,18 +470,45 @@ function createTradeMenu(root, tradesman) {
 function createDungeonMenu(root, dungeon) {
   const actions = document.createElement('div');
   actions.textContent = 'Actions';
-  if (true) {
+  actions.style.color = 'blue';
+  actions.style.textAlign = 'center';
+  actions.style.fontFamily = 'Arial, Helvetica, sans-serif';
+  actions.style.margin = '5px';
+
+  const div = document.createElement('div');
+
+  if (dungeon.isOpen) {
     const openBtn = document.createElement('button');
-    openBtn.textContent = 'Open';
+
     // Add code to get the key from the player items
     // If the player does not have a key, set the openBtn to disabled
+
+    openBtn.textContent = 'Open';
+    openBtn.disabled = player.items.some((item) =>
+      item.type.includes('key')) ? false : true;
+      
     openBtn.addEventListener('click', () => {
+      let itemFound = player.items.find(function (element, index) {
+        if (element.type == 'key') {
+          player.items.splice(index, 1);
+          return element;
+        }
+      });
+      
+      if (dungeon.hasPrincess) {
+        boardElement.innerHTML =
+          '<h1>You WIN!</h1><img src="imgs/dungeon/princess.png" width=500/>';
+        actioncam.style.display = 'none';
+        GAME_STATE = 'GAME_OVER';
+        playMusic('win');
+      }
       updateActionCam();
     });
+    actions.appendChild(div);
     actions.appendChild(openBtn);
     root.appendChild(actions);
   } else {
-    if (true) {
+    if (dungeon.hasPrincess) {
       boardElement.innerHTML =
         '<h1>You WIN!</h1><img src="imgs/dungeon/princess.png" width=500/>';
       actioncam.style.display = 'none';
@@ -283,9 +518,14 @@ function createDungeonMenu(root, dungeon) {
       const lootBtn = document.createElement('button');
       lootBtn.textContent = 'Loot';
       // Add code here to check if the dungeon has gold or items, if not set the lootBtn to disabled
+
+      lootBtn.disabled = dungeon.gold.value > 0 || dungeon.items.length > 0 ? false : true;
+
       lootBtn.addEventListener('click', () => {
+        player.loot(dungeon);
         updateActionCam();
       });
+      actions.appendChild(div);
       actions.appendChild(lootBtn);
       root.appendChild(actions);
     }

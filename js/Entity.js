@@ -1,5 +1,6 @@
 //Create the Entity, Wall, Grass, Gold, Dungeon and Tradesman class
 
+
 /*
 Entity class definition
 - constructor
@@ -10,8 +11,18 @@ Entity class definition
 - setImg (function)
   - parameters: src (string)
   - Updates the src of the element property
-Example use: not used by itself. 
+Example use: not used by itself.
 */
+
+class Entity {
+  constructor(src) {
+    this.element = document.createElement('img');
+    this.setImg(src);
+  }
+  setImg(src) {
+    this.element.src = 'imgs/' + src;
+  }
+}    
 
 /*
 Wall class definition. A Wall is an Entity
@@ -21,6 +32,12 @@ Wall class definition. A Wall is an Entity
 Example use:
 new Wall()
 */
+class Wall extends Entity {
+  constructor(src) {
+    super('environment/wall.png');
+  }
+}  
+
 
 /*
 Grass class definition. Grass is an Entity
@@ -30,6 +47,11 @@ Grass class definition. Grass is an Entity
 Example use:
 new Grass()
 */
+class Grass extends Entity {
+  constructor(src) {
+    super(`environment/grass${getRandom(1, 3)}.png`);
+  }
+}
 
 /*
 Gold class definition. Gold is an Entity
@@ -40,6 +62,14 @@ Gold class definition. Gold is an Entity
 Example use:
 new Gold()
 */
+class Gold extends Entity {
+  constructor(value) {
+    super('gold.gif');
+    this.value = value;
+  }
+}
+
+
 
 /*
 Dungeon class definition. Gold is an Entity
@@ -56,6 +86,15 @@ Dungeon class definition. Gold is an Entity
 Example use:
 new Dungeon(true, false, 30, [new Potion(2), new Bomb(2)]);
 */
+class Dungeon extends Entity {
+  constructor(isOpen, hasPrincess, golg, items) {
+    super(isOpen ? 'dungeon/open.png' : 'dungeon/closed.png');
+    this.isOpen = isOpen;
+    this.hasPrincess = hasPrincess;
+    this.gold = gold;
+    this.items = items;
+  }
+}
 
 /*
 Tradesman class definition. A Tradesman is an Entity
@@ -66,3 +105,10 @@ Tradesman class definition. A Tradesman is an Entity
 Example use:
 new Tradesman([new Potion(0), new Bomb(0), new Key()]);
 */
+class Tradesman extends Entity {
+  constructor(items) {
+    super('tradesman.gif');
+    this.items = items;
+    this.gold = 100;
+  }
+}

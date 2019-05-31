@@ -1,5 +1,43 @@
 //Create the Creature and Monster class
+class Creature extends Entity {
+  constructor(name, img, level, items = [], gold) {
+    super(img);
+    this.name = name;
+    this.level = level;
+    this.items = items;
+    this.gold = gold;
+    this.hp = level * 100;
+    this.strength = level * 10;
+    this.attackSpeed = 3000 / level;
+    
+  }
+  getMaxHp() {
+    return this.level * 100;
+  }
+  hit(val) {
+    this.hp = Math.max(this.hp - val, 0);
+  }
+  attack(entity) {
+    entity.hit(this.strength);
+  }
+}
 
+class Monster extends Creature {
+  constructor() {
+    const randomName = MONSTER_NAMES[getRandom(0, MONSTER_NAMES.length - 1)];
+    const imgName = `monsters/${randomName.replace(/\s+/g, "")}.gif`;
+    const level = getRandom(1, 3);
+    const gold = getRandom(0, 50);
+    const items = new Potion(getRandom(0, 3));
+    super(randomName, imgName, level, items, gold);
+    this.element.style.backgroundImage = "url(imgs/environment/grass1.png)";
+    this.type = 'monster';
+  }
+  attack(entity) {
+    super.attack(entity);
+    playSound("mattack");
+  }
+}
 /*
 The Creature class is an Entity. It has the following properties (not including inherited properties):
 - constructor

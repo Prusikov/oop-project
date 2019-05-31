@@ -1,64 +1,145 @@
 //Create the Player class
+class Player {
 
-/*
-Player class definition. Player is a Creature
-- constructor
-  - parameters: name (string), position (Position), board (Board), level (number), items (Item[]), gold (number)
-  - Sets the attackSpeed to 2000 / level
-  - Sets the exp to 0
-  - Sets the position and board
-- attackSpeed (number)
-- exp (number)
-- position (Position)
-- board (Board)
-- render (function)
-  - parameters: root (HTMLElement)
-  - Appends the element to the root (the board HTML element)
-  - Updates the player position
-- update (function)
-  - parameters: none
-  - Updates the player's HTML element position based on its position property and ENTITY_SIZE
-- moveToPosition (Position)
-  - moves to position specified unless it is a Wall entity.
-  - updates player (update method)
-- move (function)
-  - parameters: direction (string)
-  - Sets the player image based on direction and moves to new position
-- pickup (function)
-  - parameters: entity (Item || Gold)
-  - Adds item or gold and plays the corresponding sound ('loot' or 'gold' respectively)
-- attack (function)
-  - parameters: (entity)
-  - calls the attack method from Creature (use super) and plays the 'pattack' sound if the attack was successful
-- buy (function)
-  - parameters: item (Item), tradesman (Tradesman)
-  - updates gold and items for both player and tradesman.
-  - Plays the trade sound
-  - returns true if successful trade, false if gold is insufficient
-- sell (function)
-  - parameters: item (Item), tradesman (Tradesman)
-  - updates gold and items for both player and tradesman.
-  - Plays the trade sound
-  - returns true if successful trade, false if gold is insufficient
-- useItem (function)
-  - parameters: item (Item), target (Creature)
-  - uses the item on the target and removes it from the player
-- loot (function)
-  - parameters: entity (Monster || Dungeon)
-  - Updates gold and items for both player and dungeon or monster.
-  - plays the loot sound
-- getExpToLevel (function)
-  - parameters: none
-  - returns exp needed to level: level * 10
-- getExp (function)
-  - parameters: entity (Monster)
-  - adds exp based on entity level (level * 10)
-  - level up if enough exp. It is possible to level up multiple times at once if enough exp is earned (e.g. beat enemy level 3)
-- levelUp (function)
-  - parameters: entity (Monster)
-  - Increments level, sets hp to max hp
-  - updates strength (level * 10) and attack speed (3000 / level)
-  - plays levelup sound
-Example use:
-new Player('Van', new Position(5, 5), new Board(10, 10), 1, [new Potion(0)]);
-*/
+  constructor(name, position, board, level, items, gold) {
+  
+    this.position = position;
+    this.name = name;
+    this.board = board;
+    this.level = level > 1 ? level : 1;
+    this.items = items;
+    this.gold = gold;
+    this.exp = 0;
+    this.attackSpeed = 2000 / level;
+    this.hp = 250;
+  }
+ 
+  update() {
+    Board.setEntity(entity, position);
+  }
+  setImg(src) {
+    this.board.rows[player.position.row][player.position.column].element.src = 'imgs/' + src;
+  }
+  moveRight() {
+    if (this.board.rows[player.position.row][player.position.column] &&
+      player.position.row > 0 &&
+      player.position.column + 2 < this.board.rows[0].length &&
+      player.position.row != this.board.rows.length
+    ) {
+      this.board.rows[player.position.row][player.position.column].element.src = `imgs/environment/grass${getRandom(1, 3)}.png`;
+
+      player.position.column = player.position.column + 1;
+    }
+
+  }
+  moveLeft() {
+    if (this.board.rows[player.position.row][player.position.column]
+      && player.position.row > 0 && player.position.row != this.board.rows.length
+      && player.position.column > 1) {
+      this.board.rows[player.position.row][player.position.column].element.src = `imgs/environment/grass${getRandom(1, 3)}.png`;
+
+      player.position.column = player.position.column - 1;
+
+    }
+  }
+  moveUp() {
+    if (this.board.rows[player.position.row][player.position.column] && player.position.row > 1) {
+      
+      this.board.rows[player.position.row][player.position.column].element.src = `imgs/environment/grass${getRandom(1, 3)}.png`;
+
+      player.position.row = player.position.row - 1;
+
+    }
+  }
+  moveDown() {
+    if (this.board.rows[player.position.row][player.position.column] &&
+      player.position.row > 0 && player.position.row + 1 < this.board.rows.length - 1
+
+    ) {
+      this.board.rows[player.position.row][player.position.column].element.src = `imgs/environment/grass${getRandom(1, 3)}.png`;
+
+      player.position.row = player.position.row + 1;
+
+    }
+  }
+  getExpToLevel() {
+    this.level = this.level * 10;
+  }
+  levelUp(monster) {
+   
+    this.hp = this.level * 100;
+    this.attackSpeed = 3000 / this.level;
+    this.level++;
+  }
+  attack(entity) {
+    entity.attack(entity)
+    sounds.bg.pause();
+    playSound("pattack");
+  }
+  getMaxHp() {
+    return this.level * 100;
+  }
+  hit(val) {
+    this.hp = Math.max(this.hp - val, 0);
+  }
+
+  loot(entity) {
+    this.gold += entity.gold.value;
+    entity.gold.value = 0;
+    entity.items.forEach(function (e) {
+      player.items.push(e);
+    })
+    entity.items = [];
+    sounds.bg.pause();
+    playSound("loot");
+  }
+  buy(item, tradesman) {
+    let itemFound = tradesman.items.find(function (element, index) {
+      if (element.type == item) {
+        tradesman.items.splice(index, 1);
+        return element;
+      }
+        
+    });
+
+    player.gold = player.gold - itemFound.value;
+    player.items.push(itemFound);
+
+    sounds.bg.pause();
+    playSound("trade");
+  }
+  sell(item, tradesman) {
+    let indexValue;
+    let itemFound = player.items.find(function (element, index) {
+      if (element.type == item) {
+        indexValue = index;
+        return element;
+      }
+    });
+  
+    if (tradesman.gold >= itemFound.value) {
+      player.items.splice(indexValue, 1);
+      player.gold += itemFound.value;
+      tradesman.gold = tradesman.gold - itemFound.value;
+      tradesman.items.push(itemFound);
+
+      return true;
+    }
+    else return false;
+
+  }
+  pickup(item) {
+    if (item.constructor.name == 'Gold') {
+      player.gold += item.value;
+      sounds.bg.pause();
+      playSound("gold");
+    }
+    else
+    {
+      player.items.push(item);
+      sounds.bg.pause();
+      playSound("loot");
+    }  
+  }
+  
+}

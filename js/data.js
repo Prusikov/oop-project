@@ -1,6 +1,6 @@
 const ITEM_RARITIES = ['Common', 'Unusual', 'Rare', 'Epic'];
 const MONSTER_NAMES = [
-  'Anti Fairy',
+ 'Anti Fairy',  
   'Gibdo',
   'Moblin',
   'Scissor Beetle',
